@@ -14,23 +14,14 @@ export default function Lab() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="border-b border-[#2a2a2a] px-4 py-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <pre className="text-[#444] text-[10px] leading-none select-none">{`
- █████╗  ██████╗ ███████╗███╗   ██╗████████╗
-██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝
-███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║
-██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║
-██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║
-╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝
-
-██╗███╗   ██╗████████╗███████╗██╗     ██╗     ██╗ ██████╗ ███████╗███╗   ██╗ ██████╗███████╗
-██║████╗  ██║╚══██╔══╝██╔════╝██║     ██║     ██║██╔════╝ ██╔════╝████╗  ██║██╔════╝██╔════╝
-██║██╔██╗ ██║   ██║   █████╗  ██║     ██║     ██║██║  ███╗█████╗  ██╔██╗ ██║██║     █████╗
-██║██║╚██╗██║   ██║   ██╔══╝  ██║     ██║     ██║██║   ██║██╔══╝  ██║╚██╗██║██║     ██╔══╝
-██║██║ ╚████║   ██║   ███████╗███████╗███████╗██║╚██████╔╝███████╗██║ ╚████║╚██████╗███████╗
-╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚══════╝`.trimStart()}</pre>
-          <div className="flex flex-col items-end gap-1 text-[11px] text-[#555]">
+      <div className="border-b border-[#2a2a2a] shrink-0">
+        <div className="border border-[#2a2a2a] m-3 relative">
+          {/* Top border label */}
+          <div className="absolute -top-[9px] left-4 bg-[#111111] px-2 text-[10px] text-[#555] uppercase tracking-[0.1em]">
+            System
+          </div>
+          {/* Bottom border stats */}
+          <div className="absolute -bottom-[9px] right-4 bg-[#111111] px-2 flex items-center gap-3 text-[10px] text-[#555]">
             <span className="flex items-center gap-1.5">
               <span
                 className="w-1.5 h-1.5 bg-[#4ade80]"
@@ -38,8 +29,16 @@ export default function Lab() {
               />
               {agents.filter((a) => a.status === 'active').length} active
             </span>
-            <span>{agents.length} agents registered</span>
+            <span className="text-[#333]">|</span>
+            <span>{agents.length} registered</span>
           </div>
+          <pre className="text-[#555] text-[10px] leading-[1.15] select-none text-center py-4 px-6">{`
+ █████╗  ██████╗ ███████╗███╗   ██╗████████╗    ██╗      █████╗ ██████╗
+██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝    ██║     ██╔══██╗██╔══██╗
+███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║       ██║     ███████║██████╔╝
+██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║       ██║     ██╔══██║██╔══██╗
+██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║       ███████╗██║  ██║██████╔╝
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝       ╚══════╝╚═╝  ╚═╝╚═════╝`.trimStart()}</pre>
         </div>
       </div>
 
