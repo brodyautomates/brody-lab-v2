@@ -4,9 +4,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Agent } from '@/lib/types';
 
 const statusColor: Record<string, string> = {
-  active: '#4ade80',
-  idle: '#555',
-  error: '#ef4444',
+  active: '#00ff88',
+  idle: '#4a4a5e',
+  error: '#ff4466',
+};
+
+const statusGlow: Record<string, string> = {
+  active: 'rgba(0, 255, 136, 0.4)',
+  idle: 'rgba(74, 74, 94, 0.2)',
+  error: 'rgba(255, 68, 102, 0.4)',
 };
 
 interface NodePosition {
@@ -41,17 +47,14 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
   const { width, height } = dimensions;
 
-  // Position agents in a meaningful layout based on their role in the pipeline
-  // Entry points on left, processors in middle, outputs on right
   const getPositions = (): NodePosition[] => {
     if (width === 0) return [];
 
-    const padX = 80;
-    const padY = 40;
+    const padX = 100;
+    const padY = 50;
     const usableW = width - padX * 2;
     const usableH = height - padY * 2;
 
-    // Group by pipeline stage
     const entryAgents = agents.filter(a =>
       ['lead-scraper', 'brand-scout', 'content-repurposer'].includes(a.id)
     );
@@ -79,15 +82,14 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
   const positions = getPositions();
 
-  // Build edges from agent.connectedTo
-  const edges: { from: NodePosition; to: NodePosition }[] = [];
+  const edges: { from: NodePosition; to: NodePosition; fromAgent: Agent }[] = [];
   agents.forEach((agent) => {
     const fromPos = positions.find((p) => p.id === agent.id);
     if (!fromPos) return;
     agent.connectedTo.forEach((targetId) => {
       const toPos = positions.find((p) => p.id === targetId);
       if (toPos) {
-        edges.push({ from: fromPos, to: toPos });
+        edges.push({ from: fromPos, to: toPos, fromAgent: agent });
       }
     });
   });
@@ -95,30 +97,81 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
   return (
     <div ref={containerRef} className="w-full h-full relative">
       {width > 0 && (
-        <svg
-          width={width}
-          height={height}
-          className="absolute inset-0"
-        >
-          {/* Grid dots */}
+        <svg width={width} height={height} className="absolute inset-0">
           <defs>
-            <pattern id="map-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <circle cx="16" cy="16" r="0.5" fill="#1e1e1e" />
+            {/* Subtle grid pattern */}
+            <pattern id="map-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="0.6" fill="rgba(255,255,255,0.03)" />
             </pattern>
+
+            {/* Gradient for active connections */}
+            <linearGradient id="edge-active" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#00ff88" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#00ff88" stopOpacity="0.1" />
+            </linearGradient>
+
+            <linearGradient id="edge-idle" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#4a4a5e" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#4a4a5e" stopOpacity="0.08" />
+            </linearGradient>
+
+            {/* Glow filter */}
+            <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
+
           <rect width={width} height={height} fill="url(#map-grid)" />
+
+          {/* Column labels */}
+          <text x={100} y={28} fill="rgba(255,255,255,0.12)" fontSize="10" fontFamily="Inter, sans-serif" fontWeight="500" letterSpacing="0.08em">
+            SOURCES
+          </text>
+          <text x={width / 2} y={28} textAnchor="middle" fill="rgba(255,255,255,0.12)" fontSize="10" fontFamily="Inter, sans-serif" fontWeight="500" letterSpacing="0.08em">
+            PROCESSORS
+          </text>
+          <text x={width - 100} y={28} textAnchor="end" fill="rgba(255,255,255,0.12)" fontSize="10" fontFamily="Inter, sans-serif" fontWeight="500" letterSpacing="0.08em">
+            OUTPUTS
+          </text>
 
           {/* Edges */}
           {edges.map((edge, i) => {
             const midX = (edge.from.x + edge.to.x) / 2;
+            const isActive = edge.fromAgent.status === 'active';
+            const isHighlighted = selectedId === edge.from.id || selectedId === edge.to.id;
+
             return (
-              <path
-                key={i}
-                d={`M ${edge.from.x} ${edge.from.y} C ${midX} ${edge.from.y}, ${midX} ${edge.to.y}, ${edge.to.x} ${edge.to.y}`}
-                stroke="#2a2a2a"
-                strokeWidth="1"
-                fill="none"
-              />
+              <g key={i}>
+                {/* Glow layer for highlighted edges */}
+                {isHighlighted && (
+                  <path
+                    d={`M ${edge.from.x} ${edge.from.y} C ${midX} ${edge.from.y}, ${midX} ${edge.to.y}, ${edge.to.x} ${edge.to.y}`}
+                    stroke={isActive ? '#00ff88' : '#4a4a5e'}
+                    strokeWidth="4"
+                    fill="none"
+                    opacity="0.15"
+                  />
+                )}
+                <path
+                  d={`M ${edge.from.x} ${edge.from.y} C ${midX} ${edge.from.y}, ${midX} ${edge.to.y}, ${edge.to.x} ${edge.to.y}`}
+                  stroke={isHighlighted ? (isActive ? '#00ff88' : '#6a6a7e') : 'url(#edge-idle)'}
+                  strokeWidth={isHighlighted ? 1.5 : 1}
+                  fill="none"
+                  opacity={isHighlighted ? 0.6 : 1}
+                />
+              </g>
             );
           })}
 
@@ -128,6 +181,10 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
             if (!agent) return null;
             const isSelected = selectedId === pos.id;
             const isActive = agent.status === 'active';
+            const color = statusColor[agent.status];
+
+            const nodeW = 120;
+            const nodeH = 36;
 
             return (
               <g
@@ -135,36 +192,40 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
                 onClick={() => onSelect(pos.id)}
                 style={{ cursor: 'pointer' }}
               >
-                {/* Selection highlight */}
+                {/* Selection glow */}
                 {isSelected && (
                   <rect
-                    x={pos.x - 42}
-                    y={pos.y - 14}
-                    width={84}
-                    height={28}
+                    x={pos.x - nodeW / 2 - 2}
+                    y={pos.y - nodeH / 2 - 2}
+                    width={nodeW + 4}
+                    height={nodeH + 4}
+                    rx="10"
                     fill="none"
-                    stroke="#4ade80"
+                    stroke={color}
                     strokeWidth="1"
+                    opacity="0.3"
                   />
                 )}
 
-                {/* Node box */}
+                {/* Node background */}
                 <rect
-                  x={pos.x - 40}
-                  y={pos.y - 12}
-                  width={80}
-                  height={24}
-                  fill={isSelected ? '#1a1a1a' : '#141414'}
-                  stroke={isSelected ? '#4ade80' : '#2a2a2a'}
+                  x={pos.x - nodeW / 2}
+                  y={pos.y - nodeH / 2}
+                  width={nodeW}
+                  height={nodeH}
+                  rx="8"
+                  fill={isSelected ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)'}
+                  stroke={isSelected ? color : 'rgba(255,255,255,0.06)'}
                   strokeWidth="1"
                 />
 
-                {/* Status dot */}
+                {/* Status indicator */}
                 <circle
-                  cx={pos.x - 30}
+                  cx={pos.x - nodeW / 2 + 16}
                   cy={pos.y}
-                  r="2.5"
-                  fill={statusColor[agent.status]}
+                  r="3"
+                  fill={color}
+                  filter={isActive ? 'url(#glow-green)' : undefined}
                 >
                   {isActive && (
                     <animate
@@ -178,28 +239,29 @@ export default function ConnectionMap({ agents, selectedId, onSelect }: Props) {
 
                 {/* Label */}
                 <text
-                  x={pos.x + 4}
+                  x={pos.x + 6}
                   y={pos.y + 1}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fill={isSelected ? '#c8c8c8' : '#666'}
-                  fontSize="8"
-                  fontFamily="'JetBrains Mono', monospace"
-                  letterSpacing="0.04em"
+                  fill={isSelected ? '#e8e8ed' : '#8b8b9e'}
+                  fontSize="9.5"
+                  fontFamily="'Inter', sans-serif"
+                  fontWeight="500"
+                  letterSpacing="0.02em"
                 >
-                  {agent.name.length > 12 ? agent.name.slice(0, 11) + '..' : agent.name}
+                  {agent.name.length > 14 ? agent.name.slice(0, 13) + '..' : agent.name}
                 </text>
 
                 {/* Brand tag */}
                 {agent.brand && (
                   <text
-                    x={pos.x + 4}
-                    y={pos.y + 22}
+                    x={pos.x + 6}
+                    y={pos.y + nodeH / 2 + 14}
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fill="#444"
-                    fontSize="7"
-                    fontFamily="'JetBrains Mono', monospace"
+                    fill="rgba(255,255,255,0.2)"
+                    fontSize="8"
+                    fontFamily="'Inter', sans-serif"
                   >
                     {agent.brand}
                   </text>

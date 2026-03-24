@@ -11,39 +11,49 @@ export default function Lab() {
   const [selectedId, setSelectedId] = useState<string | null>(agents[0]?.id ?? null);
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
 
+  const activeCount = agents.filter((a) => a.status === 'active').length;
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-[var(--bg-primary)]">
       {/* Header */}
-      <div className="border-b border-[#2a2a2a] shrink-0">
-        <div className="border border-[#2a2a2a] m-3 relative">
-          {/* Top border label */}
-          <div className="absolute -top-[9px] left-4 bg-[#111111] px-2 text-[10px] text-[#555] uppercase tracking-[0.1em]">
-            System
+      <header className="shrink-0 px-5 py-4 flex items-center justify-between border-b border-[var(--border)]">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00ff88] to-[#00cc6a] flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="#0a0a0f" strokeWidth="1.5" fill="none" />
+                <circle cx="8" cy="8" r="2" fill="#0a0a0f" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-[15px] font-semibold text-[var(--text-primary)] tracking-tight">THE LAB</h1>
+              <p className="text-[11px] text-[var(--text-muted)] -mt-0.5">Agent Workbench</p>
+            </div>
           </div>
-          {/* Bottom border stats */}
-          <div className="absolute -bottom-[9px] right-4 bg-[#111111] px-2 flex items-center gap-3 text-[10px] text-[#555]">
+        </div>
+
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2 text-[12px] text-[var(--text-secondary)]">
             <span className="flex items-center gap-1.5">
               <span
-                className="w-1.5 h-1.5 bg-[#4ade80]"
+                className="w-2 h-2 rounded-full bg-[var(--accent)]"
                 style={{ animation: 'pulse-dot 2s infinite' }}
               />
-              {agents.filter((a) => a.status === 'active').length} active
+              <span className="mono text-[11px]">{activeCount} active</span>
             </span>
-            <span className="text-[#333]">|</span>
-            <span>{agents.length} registered</span>
+            <span className="text-[var(--text-muted)]">/</span>
+            <span className="mono text-[11px]">{agents.length} total</span>
           </div>
-          <pre className="text-[#555] text-[10px] leading-[1.15] select-none text-center py-4 px-6">{`
- █████╗  ██████╗ ███████╗███╗   ██╗████████╗    ██╗      █████╗ ██████╗
-██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝    ██║     ██╔══██╗██╔══██╗
-███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║       ██║     ███████║██████╔╝
-██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║       ██║     ██╔══██║██╔══██╗
-██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║       ███████╗██║  ██║██████╔╝
-╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝       ╚══════╝╚═╝  ╚═╝╚═════╝`.trimStart()}</pre>
+          <div className="h-5 w-px bg-[var(--border)]" />
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />
+            <span className="text-[11px] text-[var(--text-muted)]">System online</span>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Connection Map */}
-      <div className="h-[280px] shrink-0 border-b border-[#2a2a2a] bg-[#111111]">
+      <div className="h-[300px] shrink-0 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
         <ConnectionMap
           agents={agents}
           selectedId={selectedId}
@@ -54,7 +64,7 @@ export default function Lab() {
       {/* Three columns — workbench */}
       <div className="flex-1 flex min-h-0">
         {/* Left — Agent Registry */}
-        <div className="w-56 shrink-0">
+        <div className="w-60 shrink-0">
           <AgentRegistry
             agents={agents}
             selectedId={selectedId}
@@ -72,7 +82,7 @@ export default function Lab() {
         </div>
 
         {/* Right — Activity Feed */}
-        <div className="w-72 shrink-0">
+        <div className="w-80 shrink-0">
           <ActivityFeed
             activity={activityFeed}
             onClickAgent={setSelectedId}
